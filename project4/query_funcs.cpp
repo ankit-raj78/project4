@@ -109,54 +109,80 @@ void query1(connection *C, int use_mpg, int min_mpg, int max_mpg,
 }
 
 void query2(connection *C, string team_color) {
-    stringstream query;
-    query << "SELECT T.NAME FROM TEAM T JOIN COLOR C ON T.COLOR_ID = C.COLOR_ID "
-          << "WHERE C.NAME = '" << team_color << "'";
+    string quoted_color;
+    
+    // Create a temporary transaction just for quoting
+    {
+        work W(*C);
+        quoted_color = W.quote(team_color);
+        W.commit();
+    }
     
     nontransaction N(*C);
+    stringstream query;
+    query << "SELECT T.NAME FROM TEAM T JOIN COLOR C ON T.COLOR_ID = C.COLOR_ID "
+          << "WHERE C.NAME = " << quoted_color;
+    
     result R(N.exec(query.str()));
     
-    // Print header
+    // Print header and results
     cout << "NAME" << endl;
-    
-    // Print each team name
     for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
         cout << c[0].as<string>() << endl;
     }
 }
 
 void query3(connection *C, string team_name) {
-    work W(*C);
+    string quoted_name;
+    
+    // Create a temporary transaction just for quoting, and commit/destroy it
+    {
+        work W(*C);
+        quoted_name = W.quote(team_name);
+        W.commit(); // Commit and close this transaction
+    }
+    
+    // Now create a new transaction for executing the query
+    nontransaction N(*C);
     stringstream query;
     
     query << "SELECT P.FIRST_NAME, P.LAST_NAME FROM PLAYER P JOIN TEAM T ON P.TEAM_ID = T.TEAM_ID "
-          << "WHERE T.NAME = " << W.quote(team_name) 
+          << "WHERE T.NAME = " << quoted_name
           << " ORDER BY P.PPG DESC";
     
-    nontransaction N(*C);
     result R(N.exec(query.str()));
     
     // Print header
     cout << "FIRST_NAME LAST_NAME" << endl;
     
-    // Print player names ordered by PPG
+    // Print results
     for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
         cout << c[0].as<string>() << " " << c[1].as<string>() << endl;
     }
 }
 
 void query4(connection *C, string team_state, string team_color) {
-    work W(*C);
+    string quoted_state, quoted_color;
+    
+    // Create a temporary transaction just for quoting, and commit/destroy it
+    {
+        work W(*C);
+        quoted_state = W.quote(team_state);
+        quoted_color = W.quote(team_color);
+        W.commit(); // Commit and close this transaction
+    }
+    
+    // Now create a new transaction for executing the query
+    nontransaction N(*C);
     stringstream query;
     
     query << "SELECT P.UNIFORM_NUM, P.FIRST_NAME, P.LAST_NAME "
           << "FROM PLAYER P JOIN TEAM T ON P.TEAM_ID = T.TEAM_ID "
           << "JOIN STATE S ON T.STATE_ID = S.STATE_ID "
           << "JOIN COLOR C ON T.COLOR_ID = C.COLOR_ID "
-          << "WHERE S.NAME = " << W.quote(team_state) 
-          << " AND C.NAME = " << W.quote(team_color);
+          << "WHERE S.NAME = " << quoted_state 
+          << " AND C.NAME = " << quoted_color;
     
-    nontransaction N(*C);
     result R(N.exec(query.str()));
     
     // Print header
