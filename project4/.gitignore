@@ -1,0 +1,45 @@
+# Compiled object files
+*.o
+*.obj
+*.lo
+*.slo
+
+# Compiled executables
+test
+*.out
+*.exe
+
+# Build directories
+build/
+Debug/
+Release/
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# PostgreSQL database files
+*.dump
+*.sql
+*.bak
+
+# Log files
+*.log
+
+# Dependency directories
+vendor/
+
+# Library files
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
