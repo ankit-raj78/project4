@@ -1,30 +1,21 @@
-CC=g++
-CFLAGS=-O3 -std=c++17 -Wall
-# Get actual paths from brew
-PG_PATH=$(shell brew --prefix libpq)
-PQXX_PATH=$(shell brew --prefix libpqxx)
+CXX=g++
+CXXFLAGS=-O3 -std=c++17 -Wall
+LDFLAGS=-lpqxx -lpq
 
-# Include and library paths
-INCLUDES=-I$(PG_PATH)/include -I$(PQXX_PATH)/include
-EXTRAFLAGS=-L$(PG_PATH)/lib -L$(PQXX_PATH)/lib -lpqxx -lpq
+# PostgreSQL libraries and headers should be in standard locations
+# after installing libpqxx-dev on Ubuntu
 
-all: test
+SRCS=main.cpp query_funcs.cpp exerciser.cpp
+OBJS=$(SRCS:.cpp=.o)
+EXEC=test
 
-# Compile each file separately to better isolate errors
-test: main.o exerciser.o query_funcs.o
-	$(CC) $(CFLAGS) -o test main.o exerciser.o query_funcs.o $(EXTRAFLAGS)
+all: $(EXEC)
 
-main.o: main.cpp query_funcs.h exerciser.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c main.cpp
+$(EXEC): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)
 
-exerciser.o: exerciser.cpp exerciser.h query_funcs.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c exerciser.cpp
-
-query_funcs.o: query_funcs.cpp query_funcs.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c query_funcs.cpp
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $<
 
 clean:
-	rm -f *~ *.o test
-
-clobber:
-	rm -f *~ *.o
+	rm -f $(OBJS) $(EXEC)
