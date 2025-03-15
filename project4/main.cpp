@@ -102,7 +102,7 @@ int main (int argc, char *argv[]) {
     
     try {
         // Establish a connection to the database
-        C = new connection("dbname=ACC_BBALL user=postgres password=passw0rd hostaddr=127.0.0.1");
+        C = new connection("dbname=ACC_BBALL user=ankitraj2 password=passw0rd hostaddr=127.0.0.1");
         if (C->is_open()) {
             cout << "Opened database successfully: " << C->dbname() << endl;
         } else {
@@ -168,8 +168,7 @@ int main (int argc, char *argv[]) {
     // Execute example queries
     exercise(C);
     
-    // Close database connection
-    C->disconnect();
+    // Close database connection - just delete the object
     delete C;
     
     return 0;
